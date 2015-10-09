@@ -3,6 +3,8 @@
 
 <?php
 
+session_start();
+
 require_once 'AutoLoad.php';
 
 echo getHeaders();
@@ -10,6 +12,16 @@ echo getHeaders();
 if(isset($_POST['username']) && isset($_POST['password'])){
     echo "Username: " . $_POST['username'] . '<br>';
     echo "Password: " . $_POST['password'] . '<br>';
+    
+    $privateKey = openssl_pkey_get_private($_SESSION['priv']);
+    $details = openssl_pkey_get_details($privateKey);
+    $data = pack('H*', $_POST['password']);
+    if(openssl_private_decrypt($data, $r, $privateKey)){
+        echo 'Decrypted hash: ' . $r . '<br>';
+    }
+    else{
+        echo 'Failed to decrypt hash';
+    }
 }
 
 if (true || isset($_GET['accessKey'])) {
@@ -23,17 +35,22 @@ function handleAccessKey($accessKey) {
 }
 
 function getPublicKey() {
-    $config = array(
-        "digest_alg" => "sha512",
-        "private_key_bits" => 1024,
-        "private_key_type" => OPENSSL_KEYTYPE_RSA,
-    );
-    $res = openssl_pkey_new($config);
-    $privateKey = '';
-    openssl_pkey_export($res, $privateKey);
+    if(!isset($_SESSION['priv'])){
+        $config = array(
+            "digest_alg" => "sha512",
+            "private_key_bits" => 1024,
+            "private_key_type" => OPENSSL_KEYTYPE_RSA,
+        );
+        $res = openssl_pkey_new($config);
+        $privateKey = '';
+        openssl_pkey_export($res, $privateKey);
+        $_SESSION['priv'] = $privateKey;
+    }
+    else{
+        $res = openssl_pkey_get_private($_SESSION['priv']);
+    }
     $publicKey = openssl_pkey_get_details($res);
 //    $publicKey = $publicKey["key"];
-    $_SESSION['priv'] = $privateKey;
     return $publicKey;
 }
 
@@ -51,7 +68,7 @@ function getForm($publicKey) {
     $div .= 'Username: <input id="username" type="text" name="username"></input><br><br>';
     $div .= 'Password: <input id="password" type="password" name="password"></input><br><br>';
     
-    $div .= '<input id="submit" type="button" value="Submit"></input>';
+    $div .= '<input id="submitButton" type="button" value="Submit"></input>';
     
     $div .= '</form></div></div></div>';
     return $div;
