@@ -1,6 +1,16 @@
+<html>
+    <body background="resources/background.png">
+
 <?php
 
+require_once 'AutoLoad.php';
+
 echo getHeaders();
+
+if(isset($_POST['username']) && isset($_POST['password'])){
+    echo "Username: " . $_POST['username'] . '<br>';
+    echo "Password: " . $_POST['password'] . '<br>';
+}
 
 if (true || isset($_GET['accessKey'])) {
     handleAccessKey($_GET['accessKey']);
@@ -9,7 +19,7 @@ if (true || isset($_GET['accessKey'])) {
 }
 
 function handleAccessKey($accessKey) {
-    echo getForm();
+    echo getForm(getPublicKey());
 }
 
 function getPublicKey() {
@@ -22,7 +32,7 @@ function getPublicKey() {
     $privateKey = '';
     openssl_pkey_export($res, $privateKey);
     $publicKey = openssl_pkey_get_details($res);
-    $publicKey = $publicKey["key"];
+//    $publicKey = $publicKey["key"];
     $_SESSION['priv'] = $privateKey;
     return $publicKey;
 }
@@ -31,24 +41,35 @@ function displayError() {
     echo "You need an access key!";
 }
 
-function getForm() {
+function getForm($publicKey) {
     $div = '<div class="outer"><div class="middle"><div class="inner">';
-    $div .= '<form action="" method="POST">';
-    $div .= 'Username: <input type="text" name="username"></input><br><br>';
-    $div .= 'Password: <input type="password" name="password"></input>';
+    $div .= '<form id="registrationForm" action="" method="POST">';
+    
+    $div .= '<input id="publicKeyN" type="hidden" value="' . Utils::toHex($publicKey['rsa']['n']) . '"></input>';
+    $div .= '<input id="publicKeyE" type="hidden" value="' . Utils::toHex($publicKey['rsa']['e']) . '"></input>';
+    
+    $div .= 'Username: <input id="username" type="text" name="username"></input><br><br>';
+    $div .= 'Password: <input id="password" type="password" name="password"></input><br><br>';
+    
+    $div .= '<input id="submit" type="button" value="Submit"></input>';
     
     $div .= '</form></div></div></div>';
     return $div;
 }
 
 function getHeaders(){
-    $headers = '<link rel="stylesheet" type="text/css" href="css/registration.css"></script>';
-    $headers .= '<script src="js/jsbn/jsbn.js"></script>';
-    $headers .= '<script src="js/jsbn/prng4.js"></script>';
-    $headers .= '<script src="js/jsbn/rng.js"></script>';
-    $headers .= '<script src="js/jsbn/rsa.js"></script>';
-    $headers .= '<script src="js/jsbn/sha256.js"></script>';
-    $headers .= '<script src="js/jquery/jquery.min.js"></script>';
-    $headers .= '<script src="js/registration.js"></script>';
+    $headers = Utils::cssTag("css/registration.css");
+    $headers .= Utils::jsTag("js/jsbn/jsbn.js");
+    $headers .= Utils::jsTag("js/jsbn/prng4.js");
+    $headers .= Utils::jsTag("js/jsbn/rng.js");
+    $headers .= Utils::jsTag("js/jsbn/rsa.js");
+    $headers .= Utils::jsTag("js/jsbn/sha256.js");
+    $headers .= Utils::jsTag("js/jquery/jquery.min.js");
+    $headers .= Utils::jsTag("js/registration.js");
     return $headers;
 }
+
+?>
+        
+    </body>
+</html>
