@@ -25,3 +25,10 @@
     width: 100%;
     clear: both;
 }
+
+.error {
+    color: red;
+    font-size: 12px;
+    padding: 0px;
+    margin: 0px;
+}
