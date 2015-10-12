@@ -10,7 +10,7 @@ $(document).ready(function(){
         $(".error").remove();
         if(!(validateUsername() && validatePassword()))
             return;
-        var passwordHash = Sha256.hash($("#password").val());
+        var passwordHash = Sha256.hash($("username").val() + "spinalcraft" + $("#password").val());
         localStorage.setItem("password", passwordHash);
         console.log("Password: " + passwordHash);
         var encrypted = rsa.encrypt(passwordHash);

@@ -30,7 +30,7 @@ class RegistrationRequest {
     }
     
     private function accessKeyIsUnclaimed(){
-        $query = "SELECT * FROM accessKeys WHERE accessKey = ? AND claimed = 0";
+        $query = "SELECT * FROM accessKeys WHERE BINARY accessKey = ? AND type = 1 AND claimed = 0";
         $stmt = Database::getInstance()->prepare($query);
         $stmt->bind_param("s", $this->accessKey);
         $stmt->execute();
@@ -42,14 +42,14 @@ class RegistrationRequest {
     }
     
     private function insert(){
-        $query = "INSERT INTO actors (username, secretKey) VALUES (?, ?)";
+        $query = "INSERT INTO users (identity, hash) VALUES (?, ?)";
         $stmt = Database::getInstance()->prepare($query);
         $stmt->bind_param("ss", $this->username, $this->password);
         $stmt->execute();
     }
     
     private function claimKey(){
-        $query = "UPDATE accessKeys SET claimed = 1 WHERE accessKey = ?";
+        $query = "UPDATE accessKeys SET claimed = 1 WHERE BINARY accessKey = ?";
         $stmt = Database::getInstance()->prepare($query);
         $stmt->bind_param("s", $this->accessKey);
         $stmt->execute();
